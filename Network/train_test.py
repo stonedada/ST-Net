@@ -44,7 +44,7 @@ parser.add_argument('--base_lr', type=float, default=0.01,
                     help='segmentation network learning rate')
 parser.add_argument('--img_size', type=int,
                     default=128, help='input patch size of network input')
-parser.add_argument('--pretrained_path', type=str,default="./pretrained_ckpt/swin_tiny_patch4_window7_224.pth",
+parser.add_argument('--pretrained_path', type=str,default="../model/pretrained_ckpt/swin_tiny_patch4_window7_224.pth",
                     help='where is  the pretrained wights')
 parser.add_argument('--seed', type=int,
                     default=1234, help='random seed')
