@@ -143,10 +143,12 @@ class SwinTransformerUNetParallel(nn.Module):
                     current_k = "layers_up." + str(current_layer_num) + k[8:]
                     full_dict.update({current_k:v})
             for k in list(full_dict.keys()):
-                if k in model_dict:
-                    if full_dict[k].shape != model_dict[k].shape:
-                        print("delete:{};shape pretrain:{};shape model:{}".format(k,v.shape,model_dict[k].shape))
-                        del full_dict[k]
+                # if k in model_dict:
+                #     if full_dict[k].shape != model_dict[k].shape:
+                #         print("delete:{};shape pretrain:{};shape model:{}".format(k,v.shape,model_dict[k].shape))
+                #         del full_dict[k]
+                if k not in model_dict:
+                    del full_dict[k]
 
             msg = self.load_state_dict(full_dict, strict=False)
             # print(msg)

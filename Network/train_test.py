@@ -4,7 +4,7 @@ import sys, os
 from datetime import datetime
 from torch.autograd import Variable
 from torch import optim, nn
-from torch.nn import MSELoss, L1Loss
+from torch.nn import MSELoss, L1Loss, SmoothL1Loss
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 from inference import *
@@ -64,7 +64,7 @@ def train(train_loader, model, optimizer, epoch, best_loss, snapshot_path):
         # ---- forward ----
         outputs = model(image_batch)
         # ---- loss function ----
-        loss = mse_loss(outputs, label_batch)
+        loss = smooth_loss(outputs, label_batch)
         # ---- backward ----
         optimizer.zero_grad()
         loss.backward()
@@ -115,9 +115,9 @@ if __name__ == "__main__":
     dataset_name = args.dataset
     dataset_config = {
         'Synapse': {
-            'root_path': '/home/dataset/nuclei/train',
-            'label_dir': '/home/dataset/nuclei/train_label',
-            'volume_path': '/home/dataset/nuclei',
+            'root_path': '/home/dataset/npy_256/train',
+            'label_dir': '/home/dataset/npy_256/train_label',
+            'volume_path': '/home/dataset/npy_test/npy_256',
         },
     }
 
@@ -132,8 +132,8 @@ if __name__ == "__main__":
     bias = True
     heads = 4
     size = (128, 128)
-    # task = 'F-actin'
-    task = 'nuclei'
+    task = 'F-actin'
+    # task = 'nuclei'
 
     model_path = f'res_{is_residual}_head_{heads}_ch_{channels[-1]}_{task}'
     device = get_device()
@@ -147,20 +147,13 @@ if __name__ == "__main__":
     args.model_path = model_path
     args.device = device
     args.size = size
-    args.model_name = "UTransform"
+    args.model_name = "STNet"
     args.exp = 'TU_' + dataset_name + str(args.size[0])
     snapshot_path = "../model/{}/{}".format(args.exp, args.model_path)
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
-
-    # model = TransformerUNetParallel(channels, heads, size[0], is_residual, bias)
-    # snapshot = os.path.join(snapshot_path, 'best_model.pth')
-    # if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'UTransform-' + str(129) + '_pre')
-    # print('snapshot', snapshot, os.path.exists(snapshot))
-    # model.load_state_dict(torch.load(snapshot), strict=False)
-
     model = SwinTransformerUNetParallel(channels, heads, size[0], is_residual, bias)
-    model.load_from(args.pretrained_path)
+    # model.load_from(args.pretrained_path)
     from datasets.dataset_npy import Synapse_dataset, RandomGenerator
 
     logging.basicConfig(filename=snapshot_path + f"/{args.model_name}_train_log.txt", level=logging.INFO,
@@ -186,6 +179,7 @@ if __name__ == "__main__":
 
     mse_loss = MSELoss()
     mae_loss = L1Loss()
+    smooth_loss = SmoothL1Loss()
     optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.0001)
     writer = SummaryWriter(snapshot_path + '/Tensorboard_log')
     total_step = len(train_loader)
@@ -200,4 +194,4 @@ if __name__ == "__main__":
         best_loss, t = train(train_loader, model, optimizer, epoch, best_loss, snapshot_path)
         train_loss_history.append(t)
     writer.close()
-    np.save(f'./UTransform_train_loss_{task}.npy', np.array(train_loss_history))
+    np.save(f'./STNet_train_loss_{task}.npy', np.array(train_loss_history))

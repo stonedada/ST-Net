@@ -57,7 +57,7 @@ def test(args, model):
         save_path = os.path.join('../predictions', args.model_path, f"{s}_{args.day_time}")
         if not os.path.exists(save_path):
             os.makedirs(save_path, exist_ok=True)
-        db_train = Synapse_dataset(base_dir=image_root, label_dir=gt_root, split="test",
+        db_train = Synapse_dataset(base_dir=image_root, label_dir=gt_root, split="train",
                                    transform=transforms.Compose(
                                        [RandomGenerator(output_size=args.size)]))
         print("The length of test set is: {}".format(len(db_train)))
@@ -160,8 +160,8 @@ if __name__ == "__main__":
     dataset_config = {
         'Synapse': {
             'Dataset': Synapse_dataset,
-            'volume_path': '/home/dataset/nuclei/npy_test/im_256',
-            'label_dir': '/home/dataset/nuclei/npy_test/im_256',
+            'volume_path': '/home/dataset/npy_test/npy_256',
+            'label_dir': '/home/dataset/npy_test/npy_256',
             'num_classes': 9,
         },
     }
@@ -178,8 +178,8 @@ if __name__ == "__main__":
     bias = True
     heads = 4
     size = (128, 128)
-    # task = 'F-actin'
-    task = 'nuclei'
+    task = 'F-actin'
+    # task = 'nuclei'
 
     model_path = f'res_{is_residual}_head_{heads}_ch_{channels[-1]}_{task}'
 
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     args.size = size
 
     # name the same snapshot defined in train script!
-    args.model_name = "UTransform"
+    args.model_name = "STNet"
     args.exp = 'TU_' + dataset_name + str(args.size[0])
     snapshot_path = "../model/{}/{}".format(args.exp, args.model_path)
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     model = SwinTransformerUNetParallel(channels, heads, size[0], is_residual, bias)
     # load checkpoint
     snapshot = os.path.join(snapshot_path, 'best_model.pth')
-    if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', f'{args.model_name}-' + str(146))
+    if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', f'{args.model_name}-' + str(126))
     print('snapshot', snapshot, os.path.exists(snapshot))
 
     model.load_state_dict(torch.load(snapshot), strict=False)
