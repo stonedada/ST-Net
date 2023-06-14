@@ -13,8 +13,8 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 from utils.config import get_device
-from models.TransformerUNetParallel import TransformerUNetParallel
-from models.SwinTransformerUNet import SwinTransformerUNetParallel
+# from models.SwinTransformerUNet import SwinTransformerUNetParallel
+from models.Baseline import SwinTransformerUNetParallel
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 
@@ -44,7 +44,7 @@ parser.add_argument('--base_lr', type=float, default=0.01,
                     help='segmentation network learning rate')
 parser.add_argument('--img_size', type=int,
                     default=128, help='input patch size of network input')
-parser.add_argument('--pretrained_path', type=str,default="../model/pretrained_ckpt/swin_tiny_patch4_window7_224.pth",
+parser.add_argument('--pretrained_path', type=str, default="../model/pretrained_ckpt/swin_tiny_patch4_window7_224.pth",
                     help='where is  the pretrained wights')
 parser.add_argument('--seed', type=int,
                     default=1234, help='random seed')
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         'Synapse': {
             'root_path': '/home/dataset/npy_256/train',
             'label_dir': '/home/dataset/npy_256/train_label',
-            'volume_path': '/home/dataset/npy_test/npy_256',
+            'volume_path': '/home/dataset/npy_256',
         },
     }
 
@@ -153,6 +153,10 @@ if __name__ == "__main__":
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
     model = SwinTransformerUNetParallel(channels, heads, size[0], is_residual, bias)
+    snapshot = os.path.join(snapshot_path, 'best_model.pth')
+    if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'STNet-' + str(126) + '_pre')
+    print('snapshot', snapshot, os.path.exists(snapshot))
+    model.load_state_dict(torch.load(snapshot), strict=False)
     # model.load_from(args.pretrained_path)
     from datasets.dataset_npy import Synapse_dataset, RandomGenerator
 

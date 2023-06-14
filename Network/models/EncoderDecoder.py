@@ -62,3 +62,13 @@ class DecoderLayer(nn.Module):
         x = self.transpose(x)
         x = torch.cat((skip_x, x), dim=1)
         return self.conv(x)
+class CNNDecoderLayer(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int, is_residual: bool = False, bias=False) -> None:
+        super(CNNDecoderLayer, self).__init__()
+
+        self.transpose = nn.ConvTranspose2d(in_channels, in_channels, 2, 2, bias=bias)
+        self.conv = ConvBlock(in_channels, out_channels, is_residual, bias)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.transpose(x)
+        return self.conv(x)
