@@ -210,7 +210,7 @@ class MultiHeadCrossAttention(nn.Module):
         y = y.reshape((b, h, w, c)).permute(0, 3, 1, 2)
         size = y.size()
         sfr = SFR(size, self.channel_S, self.bias)
-        y = sfr(y, y_enc)
+        y = sfr(y_enc, y)
 
         return torch.mul(y, s_enc)
 
