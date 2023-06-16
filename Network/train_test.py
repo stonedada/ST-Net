@@ -147,16 +147,17 @@ if __name__ == "__main__":
     args.model_path = model_path
     args.device = device
     args.size = size
-    args.model_name = "STNet"
+    # args.model_name = "STNet"
+    args.model_name = "Baseline"
     args.exp = 'TU_' + dataset_name + str(args.size[0])
     snapshot_path = "../model/{}/{}".format(args.exp, args.model_path)
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
     model = SwinTransformerUNetParallel(channels, heads, size[0], is_residual, bias)
-    snapshot = os.path.join(snapshot_path, 'best_model.pth')
-    if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'STNet-' + str(126) + '_pre')
-    print('snapshot', snapshot, os.path.exists(snapshot))
-    model.load_state_dict(torch.load(snapshot), strict=False)
+    # snapshot = os.path.join(snapshot_path, 'best_model.pth')
+    # if not os.path.exists(snapshot): snapshot = snapshot.replace('best_model', 'STNet-' + str(126) + '_pre')
+    # print('snapshot', snapshot, os.path.exists(snapshot))
+    # model.load_state_dict(torch.load(snapshot), strict=False)
     # model.load_from(args.pretrained_path)
     from datasets.dataset_npy import Synapse_dataset, RandomGenerator
 
