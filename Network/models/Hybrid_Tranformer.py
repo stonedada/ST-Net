@@ -170,7 +170,7 @@ class MultiHeadSelfAttention(nn.Module):
 class MultiHeadCrossAttention(nn.Module):
     def __init__(self, embed_dim: int, num_heads: int, channel_S: int, channel_Y: int, bias=False) -> None:
         super(MultiHeadCrossAttention, self).__init__()
-        self.channel_s = channel_S
+        self.channel_S = channel_S
         self.bias = bias
         self.conv_S = nn.Sequential(
             nn.MaxPool2d(2),
@@ -188,17 +188,17 @@ class MultiHeadCrossAttention(nn.Module):
         self.mha = nn.MultiheadAttention(embed_dim, num_heads, bias=bias, batch_first=True)
 
         self.upsample = nn.Sequential(
-            nn.Conv2d(channel_S, channel_S, 1, bias=bias).apply(lambda m: nn.init.xavier_uniform_(m.weight.data)),
+            nn.Conv2d(channel_S*2, channel_S, 1, bias=bias).apply(lambda m: nn.init.xavier_uniform_(m.weight.data)),
             nn.BatchNorm2d(channel_S),
             nn.Sigmoid(),
             nn.ConvTranspose2d(channel_S, channel_S, 2, 2, bias=bias)
         )
 
+        self.pool = nn.MaxPool2d(2)
     def forward(self, s: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        s_enc = s
+        s_enc = self.pool(s)
         s = self.conv_S(s)
         y = self.conv_Y(y)
-        y_enc = y
 
         b, c, h, w = s.size()
         s = s.permute(0, 2, 3, 1).reshape((b, h * w, c))
@@ -208,11 +208,10 @@ class MultiHeadCrossAttention(nn.Module):
 
         y, _ = self.mha(y, y, s, need_weights=False)
         y = y.reshape((b, h, w, c)).permute(0, 3, 1, 2)
-        size = y.size()
-        sfr = SFR(size, self.channel_S, self.bias)
-        y = sfr(y_enc, y)
-
-        return torch.mul(y, s_enc)
+        sfr = SFR(self.channel_S, self.bias).to('cuda:1')
+        y = sfr(s_enc, y)
+        y = self.upsample(y)
+        return y
 
 
 class PatchEmbed(nn.Module):
@@ -665,11 +664,11 @@ def window_reverse(windows, window_size, H, W):
 
 
 class SFR(nn.Module):
-    def __init__(self, size: Tuple, channel_S: int, bias=False) -> None:
+    def __init__(self, channel_S: int, bias=False) -> None:
         super(SFR, self).__init__()
 
         self.conv_up = nn.Sequential(
-            nn.AdaptiveAvgPool2d(size),
+            nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(channel_S, channel_S, 1, bias=bias),
             nn.ReLU(),
             nn.Conv2d(channel_S, channel_S, 1, bias=bias),
@@ -688,11 +687,10 @@ class SFR(nn.Module):
         )
 
     def forward(self, c: torch.Tensor, d: torch.Tensor) -> torch.Tensor:
-        c_enc = c
         temp = c + d
         up = torch.mul(self.conv_up(temp), temp)
         down = torch.mul(self.conv_up(temp), temp)
         mid = up + down
-        output = self.up_sample(torch.cat(c_enc, mid))
+        output = torch.cat((c, mid), dim=1)
 
         return output

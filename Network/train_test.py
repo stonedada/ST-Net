@@ -65,7 +65,7 @@ def train(train_loader, model, optimizer, epoch, best_loss, snapshot_path):
         # ---- forward ----
         outputs = model(image_batch)
         # ---- loss function ----
-        loss = smooth_loss(outputs, label_batch)
+        loss = mae_loss(outputs, label_batch)
         # ---- backward ----
         optimizer.zero_grad()
         loss.backward()
