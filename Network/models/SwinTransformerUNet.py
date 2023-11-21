@@ -58,7 +58,7 @@ class SwinTransformerUNetParallel(nn.Module):
         self.num_layers = len(depths)
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
-            img_size=128, patch_size=1, in_chans=3, embed_dim=embed_dim,
+            img_size=image_size, patch_size=1, in_chans=3, embed_dim=embed_dim,
             norm_layer=nn.LayerNorm).to('cuda:2')
         patches_resolution = self.patch_embed.patches_resolution
         self.patches_resolution = patches_resolution
