@@ -13,9 +13,9 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 from utils.config import get_device
-# from models.SwinTransformerUNet import SwinTransformerUNetParallel
+from models.SwinTransformerUNet import SwinTransformerUNetParallel
 # from models.Baseline import SwinTransformerUNetParallel
-from models.Hybrid_Tranformer import SwinTransformerUNetParallel
+# from models.Hybrid_Tranformer import SwinTransformerUNetParallel
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 
@@ -131,8 +131,8 @@ if __name__ == "__main__":
     channels = (3, 32, 64, 128, 256, 512)
     is_residual = True
     bias = True
-    heads = 4
-    size = (128, 128)
+    heads = 1           # default 4
+    size = (256, 256)   # default (128,128)
     task = 'F-actin'
     # task = 'nuclei'
 
@@ -148,9 +148,9 @@ if __name__ == "__main__":
     args.model_path = model_path
     args.device = device
     args.size = size
-    # args.model_name = "STNet"
+    args.model_name = "STNet"
     # args.model_name = "Baseline"
-    args.model_name = "Hybrid"
+    # args.model_name = "Hybrid"
     args.exp = 'TU_' + dataset_name + str(args.size[0])
     snapshot_path = "../model/{}/{}".format(args.exp, args.model_path)
     if not os.path.exists(snapshot_path):
