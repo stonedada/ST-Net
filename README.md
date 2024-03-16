@@ -1,4 +1,4 @@
-# STNet
+# ST-Net
 The codes for the work "Swin Transformer Based Neural Network for Predicting Protein Subcellular Localization from quantitative label-free imaging with phase and polarization (QLIPP) in unlabeled live cells and tissue slices"
 ## Quick Start
 1. Create Environment
